@@ -2,9 +2,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:marquee/marquee.dart';
 import 'package:pro_besi_curen/UI/ViewPage_home.dart';
 import 'package:pro_besi_curen/UI/ui_helper/theme_swicht.dart';
+import 'package:pro_besi_curen/helper/DecimalRounder.dart';
 import 'package:pro_besi_curen/network/ResponseModel.dart';
 import 'package:pro_besi_curen/provider/CryptoDataProvider.dart';
 
@@ -295,11 +298,21 @@ class _HomePageState extends State<HomePage> {
                       case Status.COMPLETED:
                         List<CryptoData>? model = cryptoDataProvider.dataFuture.data!.cryptoCurrencyList;
 
+
                         // print(model![0].symbol);
                         return ListView.separated(
                             itemBuilder: (context, index) {
                               var number = index + 1;
-                              var tokenId = model![index];
+                              var tokenId = model![index].id;
+                              MaterialColor filterColor=DecimalRounder.setColorFilter(model[index].quotes![0].percentChange1h);
+                              var finalPrice=DecimalRounder.removePercentDecimals(model[index].quotes![0].price);
+
+                                // percent change setup decimals and colors
+                                var percentChange = DecimalRounder.removePercentDecimals(model[index].quotes![0].percentChange24h);
+
+                                Color percentColor = DecimalRounder.setPercentChangesColor(model[index].quotes![0].percentChange24h);
+                                Icon percentIcon = DecimalRounder.setPercentChangesIcon(model[index].quotes![0].percentChange24h);
+
                               return SizedBox(
                                 height: height * 0.075,
                                 child: Row(
@@ -330,7 +343,33 @@ class _HomePageState extends State<HomePage> {
                                         children: [
                                         Text(model[index].name!,style: textTheme.bodySmall,),
                                         Text(model[index].symbol!,style: textTheme.labelSmall,)
-                                      ],))
+                                      ],)
+                                      ),
+                                      Flexible(
+                                        child:ColorFiltered(
+                                          colorFilter: ColorFilter.mode(filterColor, BlendMode.srcATop),
+                                          child: SvgPicture.network('https://s3.coinmarketcap.com/generated/sparklines/web/1d/2781/$tokenId.svg')),
+                                        ),
+                                        Flexible(
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(right: 10),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children:[
+                                                Text("\$$finalPrice",style: textTheme.bodySmall,),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.end,
+                                                  children: [
+                                                    percentIcon,
+                                                    Text(percentChange +"%",
+                                                    style: GoogleFonts.ubuntu(color:percentColor,fontSize: 13),)
+                                                  ],
+                                                )
+                                              ],),
+                                          ))
+
+
                                   ],
                                 ),
                               );
